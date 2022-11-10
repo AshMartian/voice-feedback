@@ -1,0 +1,38 @@
+#root {
+  margin: 0 auto;
+  text-align: center;
+}
+
+.waveform {
+  width: 100vw;
+}
+
+.note {
+  font-size: 4em;
+}
+
+.prediction {
+  font-size: 2em;
+}
+
+.prediction .percent {
+  font-size: 0.8em;
+}
+
+.prediction .gender {
+  font-weight: bold;
+}
+
+/* past-prediction fade out animation 200s */
+.past-prediction {
+  animation: fadeOut 200s;
+}
+
+@keyframes fadeOut {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
