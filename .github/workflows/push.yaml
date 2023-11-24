@@ -30,8 +30,10 @@ jobs:
         shell: bash
         run: |
           aws s3 sync dist/ ${AWS_BUCKET} --delete
+          aws cloudfront create-invalidation --distribution-id ${CLOUDFRONT_DISTRIBUTION_ID} --paths "/*"
         env:
           AWS_BUCKET: ${{ secrets.AWS_BUCKET }}
+          CLOUDFRONT_DISTRIBUTION_ID: ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }}
           AWS_REGION: us-west-2
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
