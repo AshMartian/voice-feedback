@@ -9,6 +9,7 @@
 
 .note {
   font-size: 4em;
+  min-height: 1em;
 }
 
 .prediction {
@@ -25,12 +26,23 @@
 
 /* past-prediction fade out animation 200s */
 .past-prediction {
-  animation: fadeOut 200s;
+  animation: fadeOut 120s linear;
 }
 
 @keyframes fadeOut {
   0% {
     opacity: 1;
+    transform: scaleY(0);
+  }
+  0.5% {
+    opacity: 1;
+    transform: scaleY(1);
+  }
+  5% {
+    opacity: 1;
+  }
+  10% {
+    opacity: 0.6;
   }
   100% {
     opacity: 0;

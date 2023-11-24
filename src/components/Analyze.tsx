@@ -1,65 +1,68 @@
-import {FC, createRef, useEffect } from "react";
-import MediaVerification from "./MediaVerification";
-import { useAudioAnalyser } from '../contexts/AudioAnalyserContext';
+import {
+  createRef,
+  useEffect
+} from 'react'
 
+import { useAudioAnalyser } from '../contexts/AudioAnalyserContext'
+import { MediaVerification } from './MediaVerification'
 
-const Analyze: React.FC = () => {
-    const canvasRef = createRef<HTMLCanvasElement>();
-    const { analyser } = useAudioAnalyser();
-  
-    useEffect(() => {
-      if (!analyser) {
-        console.log("No analyzer")
-        return;
-      }
-  
-      let raf: number;
-  
-      const data = new Uint8Array(analyser.frequencyBinCount);
-  
-      const draw = () => {
-        raf = requestAnimationFrame(draw);
-        analyser.getByteTimeDomainData(data);
-        const canvas = canvasRef.current;
-        if (canvas) {
-          const { height, width } = canvas;
-          const context = canvas.getContext('2d');
-          let x = 0;
-          const sliceWidth = (width * 1.0) / data.length;
-  
-          if (context) {
-            context.lineWidth = 2;
-            context.strokeStyle = '#fff';
-            // context.fillStyle = "rgba(255,255,255,0.2)";
-            context.clearRect(0, 0, width, height);
-  
-            context.beginPath();
-            context.moveTo(0, height / 2);
-            for (const item of data) {
-              const y = (item / 255.0) * height;
-              context.lineTo(x, y);
-              x += sliceWidth;
-            }
-            context.lineTo(x, height / 2);
-            context.stroke();
-          }
-        }
-      };
-      draw();
-  
-  
-      return () => {
-        cancelAnimationFrame(raf);
-      }
-    }, [canvasRef, analyser]);
-  
-    if (!analyser) {
-      return <MediaVerification />;
+export const Analyze: React.FC = () => {
+  const canvasRef = createRef<HTMLCanvasElement>()
+  const { analyser, playing } = useAudioAnalyser()
+
+  useEffect(() => {
+    if (analyser == null) {
+      return
     }
 
-    return (
-        <canvas className="waveform" width="1200" height="200" ref={canvasRef} />
-    );
-};
+    let raf = 0
+    const draw = (): void => {
+      requestAnimationFrame(draw)
+      if (!playing) {
+        return
+      }
+      const currentTimeDomainData = new Uint8Array(analyser.fftSize)
+      analyser.getByteTimeDomainData(currentTimeDomainData)
+      const canvas = canvasRef.current
+      // Check if the current Time data is full of 128s (silence)
+      const isSilence = currentTimeDomainData.every((v) => v === 128)
+      if (canvas != null && !isSilence) {
+        const { height, width } = canvas
+        const context = canvas.getContext('2d')
+        let x = 0
+        const sliceWidth = (width * 1.0) / currentTimeDomainData.length
 
-export default Analyze;
+        if (context != null) {
+          context.lineWidth = 2
+          context.strokeStyle = '#fff'
+          // context.fillStyle = "rgba(255,255,255,0.2)";
+          context.clearRect(0, 0, width, height)
+
+          context.beginPath()
+          context.moveTo(0, height / 2)
+          for (const item of currentTimeDomainData) {
+            const y = (item / 255.0) * height
+            context.lineTo(x, y)
+            x += sliceWidth
+          }
+          context.lineTo(x, height / 2)
+          context.stroke()
+        }
+      }
+    }
+    raf = requestAnimationFrame(draw)
+    return () => { cancelAnimationFrame(raf) }
+  }, [canvasRef, analyser])
+
+  if (analyser == null) {
+    return <MediaVerification />
+  }
+
+  return (
+    <canvas className="waveform" width="1200" height="200" style={{
+      maxWidth: '98vw',
+      marginTop: '-4vw',
+      marginBottom: '-4vw'
+    }} ref={canvasRef} />
+  )
+}

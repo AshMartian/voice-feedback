@@ -1,8 +1,11 @@
-import React from 'react'
-import ReactDOM from 'react-dom/client'
-import App from './App'
 import './index.css'
-import * as contexts from './contexts';
+
+import React from 'react'
+
+import ReactDOM from 'react-dom/client'
+
+import App from './App'
+import * as contexts from './contexts'
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
   <React.StrictMode>

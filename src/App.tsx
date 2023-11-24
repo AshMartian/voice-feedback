@@ -1,38 +1,90 @@
-import { Button, createStyles } from '@mantine/core';
-import Analyze from './components/Analyze'
-import { useMediaStream } from './contexts/MediaStreamContext'
 import './App.css'
-import Note from './components/Note';
-import GenderPrediction from './components/GenderPrediction';
 
-const useStyles = createStyles(() => ({
-  button: {
-    borderRadius: '8px',
-    border: '1px solid transparent',
-    padding: '0.6em 1.2em',
-    fontWeight: 500,
-    fontFamily: 'inherit',
-    backgroundColor: '#1a1a1a',
-    cursor: 'pointer',
-    transition: 'border-color 0.25s',
-  },
-}));
+import React, { useRef } from 'react'
 
-function App() {
+import {
+  Button,
+  Group,
+  MantineProvider
+} from '@mantine/core'
+import {
+  IconFileMusic,
+  IconMicrophone2,
+  IconMicrophone2Off
+} from '@tabler/icons'
 
-  const { stream, start, stop } = useMediaStream();
+// import {Adsense} from '@ctrl/react-adsense';
 
-  const toggleMic = () => stream ? stop() : start();
+import {
+  Analyze,
+  AudioControls,
+  AudioDropzone,
+  AudioRecorder,
+  GenderPrediction,
+  Note,
+  Settings
+} from './components'
+import {
+  useInputAudio,
+  useMediaStream
+} from './contexts'
+import { useSettingsStore, defaultSettings } from './store'
+import { theme } from './utils/theme'
 
-  const { classes } = useStyles();
+function App (): JSX.Element {
+  const { stream, start, stop } = useMediaStream()
+  const { loadFile, unloadFile, file } = useInputAudio()
+  const { settings } = useSettingsStore()
+
+  const toggleMic = async (): Promise<void> => {
+    if (file != null) {
+      await unloadFile()
+    }
+    if (stream != null) { stop() } else { await start() }
+  }
+
+  const openRef = useRef<() => void>(null)
 
   return (
-    <div className="App">
-      <Button className={classes.button} onClick={toggleMic}>{stream ? 'Stop' : 'Start'} Mic</Button>
-      <Analyze />
-      <Note />
-      <GenderPrediction />
-    </div>
+    <MantineProvider theme={theme({...defaultSettings, ...settings})} withCSSVariables>
+      <div className="App">
+        <Settings />
+        <Group position='center'>
+          {(stream == null) && (
+            <Button variant="outline" onClick={() => {
+              if (openRef.current != null) {
+                openRef.current()
+              }
+            }} leftIcon={<IconFileMusic />}
+            >
+              {(file != null) ? file.name : 'Open File'}
+            </Button>
+          )}
+          <Button variant="outline" onClick={() => {
+            toggleMic()
+          }}
+          leftIcon={(stream != null) ? <IconMicrophone2Off /> : <IconMicrophone2 />}
+          >
+            {(stream != null) ? 'Stop' : 'Start'} Mic
+          </Button>
+        </Group>
+        {/* <AudioRecorder /> */}
+        <AudioControls />
+        <Analyze />
+        <Note />
+        <GenderPrediction />
+        {/*<Adsense
+          client="ca-pub-1567322254717202"
+          slot="7259870550"
+          style={{ display: 'block' }}
+          layout="in-article"
+          format="fluid"
+        />*/}
+        <AudioDropzone openRef={openRef} onFile={(file) => {
+          void loadFile(file)
+        }} />
+      </div>
+    </MantineProvider>
   )
 }
 
